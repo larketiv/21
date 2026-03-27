@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>21</title>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cinzel:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --bg:        #06050a;
+  --surface:   #0d0c14;
+  --panel:     #12101a;
+  --bone:      #c4b88e;
+  --bone-dim:  #4a4230;
+  --bone-glow: rgba(196,184,142,0.14);
+  --blood:     #7a0e0e;
+  --blood-hi:  #a81414;
+  --blood-glow:rgba(120,14,14,0.2);
+  --amber:     #c07828;
+  --amber-dim: #4a2c0a;
+  --text:      #6a6050;
+  --text-hi:   #a89870;
+  --text-lo:   #2a2420;
+  --border:    #1e1c28;
+  --card-face: #ede4cc;
+  --card-red:  #7a0e0e;
+  --disp:      'UnifrakturMaguntia', serif;
+  --label:     'Cinzel', serif;
+  --mono:      'Share Tech Mono', 'Courier New', monospace;
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
+
+/* ---- OVERLAY LAYERS (above screens, below rules) ---- */
+.scanlines{
+  position:fixed;inset:0;pointer-events:none;z-index:200;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,
+    rgba(0,0,0,0.09) 2px,rgba(0,0,0,0.09) 4px
+  );
+}
+.vignette{
+  position:fixed;inset:0;pointer-events:none;z-index:150;
+  background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 30%,rgba(0,0,0,0.88) 100%);
+}
+.grain{
+  position:fixed;inset:0;pointer-events:none;z-index:175;opacity:0.045;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain-move 0.12s steps(1) infinite;
+}
+@keyframes grain-move{
+  0%{transform:translate(0,0);}25%{transform:translate(-1%,-2%);}
+  50%{transform:translate(2%,1%);}75%{transform:translate(-1%,1%);}
+  100%{transform:translate(1%,-1%);}
+}
+
+/* ---- SCREENS ---- */
+.screen{position:fixed;inset:0;z-index:1;display:none;}
+.screen.active{display:block;}
+
+/* ================================================================
+   START SCREEN
+================================================================ */
+#screen-start{background:var(--bg);}
+#screen-start.active{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+/* Background sigil */
+.sigil-bg{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0.055;
+  animation:sigil-breathe 10s ease-in-out infinite;
+}
+@keyframes sigil-breathe{0%,100%{opacity:0.04;transform:scale(1);}50%{opacity:0.08;transform:scale(1.03);}}
+
+/* Candle glow blobs */
+.candle-l,.candle-r{
+  position:absolute;width:280px;height:360px;
+  border-radius:50%;pointer-events:none;
+  filter:blur(90px);
+  animation:candle-flicker ease-in-out infinite alternate;
+}
+.candle-l{background:rgba(160,80,10,0.08);top:10%;left:5%;animation-duration:4.3s;}
+.candle-r{background:rgba(140,60,8,0.06);bottom:15%;right:8%;animation-duration:6.1s;animation-delay:-2s;}
+@keyframes candle-flicker{from{opacity:0.6;}to{opacity:1;}}
+
+.start-inner{
+  position:relative;z-index:5;
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;
+}
+
+.start-eyebrow{
+  font-family:var(--mono);font-size:0.58rem;
+  letter-spacing:0.52em;text-transform:uppercase;
+  color:var(--bone-dim);margin-bottom:16px;
+}
+
+.start-title{
+  font-family:var(--disp);
+  font-size:clamp(6rem,22vw,14rem);
+  color:var(--bone);
+  line-height:0.85;text-align:center;
+  text-shadow:
+    0 0 30px rgba(196,184,142,0.5),
+    0 0 80px rgba(196,184,142,0.15),
+    0 0 2px rgba(0,0,0,1);
+  animation:title-flicker 11s infinite;
+  letter-spacing:-0.02em;
+}
+@keyframes title-flicker{
+  0%,88%,90%,93%,100%{opacity:1;text-shadow:0 0 30px rgba(196,184,142,0.5),0 0 80px rgba(196,184,142,0.15);}
+  89%{opacity:0.08;text-shadow:none;}
+  91%{opacity:0.6;text-shadow:0 0 10px rgba(196,184,142,0.2);}
+  92%{opacity:1;}
+}
+
+.start-rule{
+  width:180px;height:1px;margin:24px 0 20px;
+  background:linear-gradient(to right,transparent,var(--bone-dim),transparent);
+}
+
+/* Deco card row on start */
+.start-cards{display:flex;gap:8px;margin-bottom:26px;}
+.sc{
+  width:38px;height:54px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--label);font-size:0.95rem;font-weight:600;
+  box-shadow:0 3px 14px rgba(0,0,0,0.9);
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.sc-f{background:var(--card-face);border:1px solid rgba(196,184,142,0.18);}
+.sc-f.r{color:var(--card-red);}
+.sc-f.b{color:#1a1814;}
+.sc-k{
+  background:var(--surface);border:1px solid var(--border);
+  background-image:repeating-linear-gradient(
+    60deg,transparent,transparent 4px,rgba(196,184,142,0.025) 4px,rgba(196,184,142,0.025) 5px
+  );
+}
+.sc-k::before{content:'';position:absolute;inset:4px;border:1px solid rgba(196,184,142,0.08);}
+
+.start-btns{display:flex;flex-direction:column;align-items:center;gap:10px;}
+
+.btn-enter{
+  font-family:var(--label);font-size:0.95rem;font-weight:600;
+  letter-spacing:0.28em;text-transform:uppercase;
+  background:none;color:var(--bone);
+  border:1px solid var(--bone-dim);
+  padding:10px 44px;cursor:pointer;
+  position:relative;transition:all 0.15s;
+}
+.btn-enter::before,.btn-enter::after{
+  content:'';position:absolute;
+  width:6px;height:6px;
+  border-color:var(--bone);border-style:solid;
+  transition:all 0.15s;
+}
+.btn-enter::before{top:-1px;left:-1px;border-width:1px 0 0 1px;}
+.btn-enter::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0;}
+.btn-enter:hover{
+  background:rgba(196,184,142,0.05);
+  box-shadow:0 0 24px rgba(196,184,142,0.12);
+  letter-spacing:0.36em;
+}
+.btn-enter:active{transform:scale(0.98);}
+
+.btn-ghost{
+  font-family:var(--mono);font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--text-lo);background:none;border:none;
+  cursor:pointer;padding:4px 12px;transition:all 0.12s;
+  text-decoration:underline;text-decoration-color:var(--text-lo);
+  text-underline-offset:3px;
+}
+.btn-ghost:hover{color:var(--text);text-decoration-color:var(--text);}
+
+/* ================================================================
+   RULES OVERLAY
+================================================================ */
+#rules-overlay{
+  position:fixed;inset:0;z-index:8000;
+  background:rgba(0,0,0,0.94);
+  display:none;align-items:center;justify-content:center;
+}
+#rules-overlay.open{display:flex;}
+
+.rpanel{
+  background:var(--surface);
+  border:1px solid var(--bone-dim);
+  box-shadow:0 0 0 1px rgba(196,184,142,0.06),inset 0 0 60px rgba(0,0,0,0.5);
+  max-width:560px;width:92%;max-height:84vh;overflow-y:auto;
+}
+.rpanel::-webkit-scrollbar{width:2px;}
+.rpanel::-webkit-scrollbar-track{background:var(--bg);}
+.rpanel::-webkit-scrollbar-thumb{background:var(--bone-dim);}
+
+.rhead{
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--bone-dim);padding:16px 22px;
+  position:sticky;top:0;background:var(--surface);z-index:1;
+}
+.rhead h2{
+  font-family:var(--label);font-size:1.15rem;font-weight:600;
+  color:var(--bone);letter-spacing:0.18em;text-transform:uppercase;
+}
+.rclose{
+  font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;
+  color:var(--text-lo);background:none;border:1px solid var(--text-lo);
+  padding:4px 10px;cursor:pointer;transition:all 0.1s;
+}
+.rclose:hover{color:var(--text-hi);border-color:var(--text);}
+
+.rbody{padding:18px 22px 28px;display:flex;flex-direction:column;gap:18px;}
+.rsec>span{
+  display:block;font-family:var(--mono);font-size:0.54rem;
+  letter-spacing:0.42em;text-transform:uppercase;
+  color:var(--bone-dim);margin-bottom:6px;
+}
+.rsec p{
+  font-family:var(--mono);font-size:0.76rem;
+  color:var(--text);line-height:1.76;
+}
+
+/* ================================================================
+   GAME SCREEN
+================================================================ */
+#screen-game{background:var(--bg);}
+#screen-game.active{display:flex;flex-direction:column;}
+
+/* Stone texture */
+#screen-game::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 6px),
+    repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,0.03) 3px,rgba(0,0,0,0.03) 6px),
+    radial-gradient(ellipse 70% 60% at 50% 50%,rgba(60,40,10,0.06) 0%,transparent 70%);
+}
+
+/* Ambient candle warmth behind altar */
+#screen-game::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 50% 85%,rgba(100,50,10,0.07) 0%,transparent 70%);
+}
+
+.glayout{
+  position:relative;z-index:2;
+  width:100%;height:100vh;
+  max-width:800px;margin:0 auto;
+  display:flex;flex-direction:column;
+  padding:10px 16px 10px;
+}
+
+/* ---- HUD ---- */
+.hud{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  border-bottom:1px solid var(--border);
+  padding-bottom:8px;flex-shrink:0;
+}
+.hud-l{display:flex;align-items:center;}
+.hud-r{display:flex;align-items:center;justify-content:flex-end;}
+.hstat{display:flex;flex-direction:column;gap:1px;}
+.hstat-lbl{font-family:var(--mono);font-size:0.49rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--text-lo);}
+.hstat-val{
+  font-family:var(--mono);font-size:1.15rem;color:var(--bone);line-height:1;
+  text-shadow:0 0 8px var(--bone-glow);
+}
+.hlogo{
+  font-family:var(--disp);font-size:1.3rem;letter-spacing:0.06em;
+  color:var(--bone-dim);text-align:center;opacity:0.5;
+}
+.hbtn{
+  font-family:var(--mono);font-size:0.56rem;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--text-lo);background:none;border:1px solid var(--border);
+  padding:4px 10px;cursor:pointer;transition:all 0.1s;
+}
+.hbtn:hover{color:var(--text);border-color:var(--text-lo);}
+
+/* ---- ALTAR ZONES ---- */
+.zone{display:flex;flex-direction:column;align-items:center;padding:10px 0 6px;flex-shrink:0;}
+.zlbl{
+  font-family:var(--label);font-size:0.65rem;font-weight:600;
+  letter-spacing:0.4em;text-transform:uppercase;
+  color:var(--text-lo);margin-bottom:8px;
+}
+.hand-row{
+  display:flex;gap:7px;justify-content:center;align-items:flex-start;
+  flex-wrap:wrap;min-height:94px;
+}
+.zscore{
+  font-family:var(--mono);font-size:1rem;letter-spacing:0.12em;
+  color:var(--text);margin-top:5px;min-height:1.2rem;text-align:center;
+}
+.zscore.bust{color:var(--blood-hi);text-shadow:0 0 8px var(--blood-glow);}
+.zscore.bj{color:var(--bone);text-shadow:0 0 10px var(--bone-glow);}
+
+/* ---- DIVIDERS ---- */
+.ritual-divider{
+  display:flex;align-items:center;gap:10px;
+  flex-shrink:0;margin:2px 0;
+}
+.rd-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--border) 30%,var(--border) 70%,transparent);}
+.rd-glyph{
+  font-family:var(--label);font-size:0.7rem;color:var(--bone-dim);
+  opacity:0.4;flex-shrink:0;letter-spacing:0.1em;
+}
+
+/* ---- MESSAGE AREA ---- */
+.msg-area{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;}
+.gmsg{
+  font-family:var(--mono);
+  font-size:clamp(1rem,3.5vw,1.6rem);
+  letter-spacing:0.08em;
+  color:var(--text-hi);
+  text-align:center;line-height:1.2;
+  padding:0 1rem;
+  position:relative;
+}
+.gmsg.win{color:var(--bone);text-shadow:0 0 14px rgba(196,184,142,0.35);}
+.gmsg.lose{color:var(--blood-hi);text-shadow:0 0 14px rgba(168,20,20,0.4);}
+.gmsg.push{color:var(--text);}
+
+/* Glitch effect layers on message */
+.gmsg.glitching{animation:msg-glitch-base 0.08s steps(1) infinite;}
+@keyframes msg-glitch-base{
+  0%{transform:translateX(0);}
+  33%{transform:translateX(-1px);}
+  66%{transform:translateX(1px);}
+  100%{transform:translateX(0);}
+}
+
+/* ---- PLAYER HANDS ---- */
+.p-hands{display:flex;gap:22px;justify-content:center;align-items:flex-start;flex-wrap:wrap;}
+.hwrap{display:flex;flex-direction:column;align-items:center;position:relative;}
+.hwrap.cur::before{
+  content:'';position:absolute;inset:-5px;
+  border:1px solid rgba(196,184,142,0.3);
+  pointer-events:none;
+  animation:cur-pulse 2s ease-in-out infinite;
+}
+@keyframes cur-pulse{
+  0%,100%{opacity:0.2;box-shadow:0 0 6px rgba(196,184,142,0.04);}
+  50%{opacity:0.8;box-shadow:0 0 14px rgba(196,184,142,0.12);}
+}
+.hbet{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.15em;color:var(--text-lo);margin-top:5px;}
+
+/* ---- CONTROLS ---- */
+.ctrl{flex-shrink:0;border-top:1px solid var(--border);padding-top:8px;}
+
+/* Insurance */
+.ins{
+  display:none;
+  border:1px solid rgba(100,120,140,0.2);
+  background:rgba(10,12,20,0.7);
+  padding:10px 16px;margin-bottom:8px;
+  flex-direction:column;align-items:center;gap:6px;
+}
+.ins.open{display:flex;}
+.ins p{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;color:var(--text);text-align:center;}
+.ins-row{display:flex;gap:8px;margin-top:3px;}
+
+/* ---- TALLY MARK BETTING ---- */
+.offering-sect{display:flex;flex-direction:column;gap:8px;}
+
+.tally-row{
+  display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;
+}
+
+.tally-btn{
+  display:flex;flex-direction:column;align-items:center;
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:6px 10px;cursor:pointer;
+  transition:all 0.12s;
+  min-width:48px;
+  position:relative;overflow:hidden;
+}
+.tally-btn:hover{
+  background:rgba(196,184,142,0.04);
+  border-color:var(--bone-dim);
+}
+.tally-btn:active{transform:scale(0.95);}
+
+.tally-svg{
+  display:block;
+  color:var(--bone-dim);
+  margin-bottom:3px;
+  transition:color 0.1s, opacity 0.1s;
+  opacity:0.8;
+}
+.tally-btn:hover .tally-svg{color:var(--bone);opacity:1;}
+.tally-num{
+  font-family:var(--mono);font-size:0.52rem;
+  letter-spacing:0.08em;color:var(--text-lo);
+  display:block;
+}
+
+/* Offering row */
+.offering-row{
+  display:grid;grid-template-columns:1fr auto;
+  align-items:center;gap:8px;
+}
+.offering-info{display:flex;align-items:baseline;gap:8px;}
+.offering-lbl{font-family:var(--mono);font-size:0.5rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--text-lo);}
+.offering-val{
+  font-family:var(--mono);font-size:1.2rem;
+  color:var(--bone);line-height:1;
+  text-shadow:0 0 6px var(--bone-glow);
+}
+.offering-acts{display:flex;gap:5px;align-items:center;}
+
+/* ---- GENERIC BUTTONS ---- */
+.gb{
+  font-family:var(--mono);font-size:0.66rem;letter-spacing:0.12em;text-transform:uppercase;
+  background:var(--panel);color:var(--text);border:1px solid var(--border);
+  padding:7px 12px;cursor:pointer;transition:all 0.1s;outline:none;
+}
+.gb:hover:not(:disabled){background:rgba(255,255,255,0.025);color:var(--text-hi);}
+.gb:active:not(:disabled){transform:scale(0.97);}
+.gb:disabled{opacity:0.16;cursor:default;}
+.gb.danger{border-color:rgba(120,14,14,0.4);}
+.gb.danger:hover:not(:disabled){background:rgba(120,14,14,0.06);color:var(--blood-hi);}
+
+.gb-inv{
+  font-family:var(--label);font-size:0.85rem;font-weight:600;
+  letter-spacing:0.22em;text-transform:uppercase;
+  background:none;color:var(--bone);
+  border:1px solid var(--bone-dim);
+  padding:7px 20px;cursor:pointer;transition:all 0.1s;outline:none;
+  position:relative;
+}
+.gb-inv::before,.gb-inv::after{
+  content:'';position:absolute;
+  width:5px;height:5px;
+  border-color:var(--bone-dim);border-style:solid;
+  transition:all 0.1s;
+}
+.gb-inv::before{top:-1px;left:-1px;border-width:1px 0 0 1px;}
+.gb-inv::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0;}
+.gb-inv:hover:not(:disabled){
+  background:rgba(196,184,142,0.04);
+  box-shadow:0 0 16px rgba(196,184,142,0.08);
+}
+.gb-inv:disabled{opacity:0.18;cursor:default;}
+
+/* ---- ACTION + RESULT ROWS ---- */
+.act-row{display:none;gap:5px;justify-content:center;flex-wrap:wrap;}
+.act-row.open{display:flex;}
+.res-row{display:none;justify-content:center;}
+.res-row.open{display:flex;}
+
+/* ================================================================
+   CARDS
+================================================================ */
+.card{
+  width:62px;height:90px;border-radius:2px;
+  position:relative;flex-shrink:0;
+  box-shadow:1px 3px 12px rgba(0,0,0,0.9),0 1px 0 rgba(255,255,255,0.03);
+  animation:cdeal 0.26s cubic-bezier(0.1,0.05,0.2,1) both;
+}
+@keyframes cdeal{
+  from{transform:translateY(-24px) rotate(-3deg) scale(0.9);opacity:0;}
+  to{transform:translateY(0) rotate(0deg) scale(1);opacity:1;}
+}
+.cf{
+  background:var(--card-face);
+  border:1px solid #b8b098;
+  display:flex;flex-direction:column;justify-content:space-between;padding:4px 5px;
+}
+/* Aged paper effect */
+.cf::after{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:1px;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%,rgba(255,255,255,0.16) 0%,transparent 60%),
+    linear-gradient(to bottom right,rgba(0,0,0,0.01),rgba(0,0,0,0.07));
+}
+.cf.r .crk,.cf.r .css,.cf.r .cct{color:var(--card-red);}
+.cf.b .crk,.cf.b .css,.cf.b .cct{color:#1c1814;}
+.c-tl{display:flex;flex-direction:column;align-items:center;line-height:1;}
+.c-br{align-self:flex-end;transform:rotate(180deg);}
+.crk{font-family:var(--label);font-size:0.88rem;font-weight:600;line-height:1;}
+.css{font-size:0.5rem;line-height:1.1;}
+.cct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;pointer-events:none;}
+
+/* Card back with sigil */
+.cb-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.cb-card::before{
+  content:'';position:absolute;inset:5px;
+  border:1px solid rgba(196,184,142,0.08);
+}
+.cb-card::after{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 62 90' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23c4b88e' stroke-opacity='0.12' fill='none'%3E%3Ccircle cx='31' cy='45' r='24' stroke-width='0.6'/%3E%3Ccircle cx='31' cy='45' r='14' stroke-width='0.4'/%3E%3Cline x1='31' y1='21' x2='31' y2='69' stroke-width='0.4'/%3E%3Cline x1='7' y1='45' x2='55' y2='45' stroke-width='0.4'/%3E%3Cline x1='14' y1='24' x2='48' y2='66' stroke-width='0.4'/%3E%3Cline x1='48' y1='24' x2='14' y2='66' stroke-width='0.4'/%3E%3Ccircle cx='31' cy='45' r='4' stroke-width='0.5'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:cover;
+}
+
+/* ================================================================
+   SHAKE
+================================================================ */
+@keyframes shk{
+  0%,100%{transform:translateX(0);}
+  14%{transform:translateX(-6px);}28%{transform:translateX(5px);}
+  42%{transform:translateX(-4px);}57%{transform:translateX(3px);}
+  71%{transform:translateX(-2px);}85%{transform:translateX(2px);}
+}
+.shk{animation:shk 0.42s ease-in-out;}
+
+/* ================================================================
+   RESPONSIVE
+================================================================ */
+@media(max-height:620px){
+  .card{width:50px;height:74px;}
+  .hand-row{min-height:78px;}
+  .gmsg{font-size:1rem;}
+  .start-title{font-size:5rem;}
+}
+@media(max-width:400px){
+  .card{width:52px;height:76px;}
+  .gb{font-size:0.6rem;padding:6px 8px;}
+  .tally-btn{min-width:40px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Atmospheric overlays -->
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<!-- ================================================================
+     START SCREEN
+================================================================ -->
+<div id="screen-start" class="screen active">
+  <div class="candle-l"></div>
+  <div class="candle-r"></div>
+
+  <!-- Background sigil -->
+  <div class="sigil-bg">
+    <svg viewBox="0 0 400 400" width="min(90vw,90vh)" fill="none" stroke="#c4b88e" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="200" cy="200" r="185" stroke-width="0.8"/>
+      <circle cx="200" cy="200" r="160" stroke-width="0.4"/>
+      <circle cx="200" cy="200" r="80"  stroke-width="0.5"/>
+      <circle cx="200" cy="200" r="12"  stroke-width="0.6"/>
+      <!-- Hexagram -->
+      <polygon points="200,40 340,280 60,280"  stroke-width="0.7"/>
+      <polygon points="200,360 60,120 340,120" stroke-width="0.7"/>
+      <!-- Radial tick marks -->
+      <line x1="200" y1="15"  x2="200" y2="38"  stroke-width="0.8"/>
+      <line x1="200" y1="362" x2="200" y2="385" stroke-width="0.8"/>
+      <line x1="15"  y1="200" x2="38"  y2="200" stroke-width="0.8"/>
+      <line x1="362" y1="200" x2="385" y2="200" stroke-width="0.8"/>
+      <line x1="49"  y1="49"  x2="66"  y2="66"  stroke-width="0.6"/>
+      <line x1="334" y1="49"  x2="351" y2="66"  stroke-width="0.6"/>
+      <line x1="49"  y1="351" x2="66"  y2="334" stroke-width="0.6"/>
+      <line x1="334" y1="351" x2="351" y2="334" stroke-width="0.6"/>
+    </svg>
+  </div>
+
+  <div class="start-inner">
+    <div class="start-eyebrow">a game of chance / and consequence</div>
+    <h1 class="start-title">21</h1>
+    <div class="start-rule"></div>
+    <div class="start-cards">
+      <div class="sc sc-f r">A&hearts;</div>
+      <div class="sc sc-f b">K&spades;</div>
+      <div class="sc sc-k"></div>
+      <div class="sc sc-f r">7&diams;</div>
+      <div class="sc sc-f b">Q&clubs;</div>
+    </div>
+    <div class="start-btns">
+      <button class="btn-enter" id="btn-enter">BEGIN</button>
+      <button class="btn-ghost" id="btn-rules-start">rules &amp; mechanics</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     RULES OVERLAY
+================================================================ -->
+<div id="rules-overlay">
+  <div class="rpanel">
+    <div class="rhead">
+      <h2>Rules &amp; Mechanics</h2>
+      <button class="rclose" id="btn-close-rules">[ close ]</button>
+    </div>
+    <div class="rbody">
+      <div class="rsec"><span>// objective</span><p>Everyone plays against the dealer. Get closer to 21 than the dealer without going over. A hand exceeding 21 is a bust and the wager is lost.</p></div>
+      <div class="rsec"><span>// card values</span><p>Jacks, Queens, Kings, and 10s count as 10. Aces count as 1 or 11. All other cards are face value.</p></div>
+      <div class="rsec"><span>// gameplay</span><p>You receive two cards face up. The dealer takes one face up, one face down. Choose to Hit (draw a card) or Stand (hold your hand). Draw as many cards as you want until satisfied or until you bust.</p></div>
+      <div class="rsec"><span>// payouts</span><p>Beat the dealer and receive an equal payout. Dealer busts and you win. A tied total is a push and the offering returns. Blackjack pays 3 to 2.</p></div>
+      <div class="rsec"><span>// blackjack</span><p>An Ace paired with any 10-value card on your first two cards. Pays 3 to 2.</p></div>
+      <div class="rsec"><span>// split</span><p>First two cards of equal value: split into two separate hands. Second hand requires a matching offering. Split Aces receive one card each only.</p></div>
+      <div class="rsec"><span>// double down</span><p>After receiving your first two cards, double the offering up to the original amount. You receive exactly one more card.</p></div>
+      <div class="rsec"><span>// insurance</span><p>Dealer shows an Ace: wager up to half your offering that the dealer holds Blackjack. Pays 2 to 1 if correct. Lost otherwise.</p></div>
+      <div class="rsec"><span>// surrender</span><p>After your first two cards: forfeit half your offering and walk away from the hand immediately.</p></div>
+      <div class="rsec"><span>// dealer rules</span><p>Dealer must draw on 16 or below. Dealer holds on 17 or above.</p></div>
+      <div class="rsec"><span>// keyboard</span><p>[H] Hit &nbsp; [S] Stand &nbsp; [D] Double &nbsp; [Esc] Close</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     GAME SCREEN
+================================================================ -->
+<div id="screen-game" class="screen">
+  <div class="glayout">
+
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-l">
+        <div class="hstat">
+          <span class="hstat-lbl">Debt</span>
+          <span class="hstat-val" id="hud-chips">1000</span>
+        </div>
+      </div>
+      <div class="hlogo">21</div>
+      <div class="hud-r">
+        <button class="hbtn" id="btn-rules-game">[ rules ]</button>
+      </div>
+    </div>
+
+    <!-- Dealer -->
+    <div class="zone">
+      <div class="zlbl">The Dealer</div>
+      <div class="hand-row" id="dealer-hand"></div>
+      <div class="zscore" id="dealer-score"></div>
+    </div>
+
+    <div class="ritual-divider">
+      <div class="rd-line"></div>
+      <div class="rd-glyph">&#10022;</div>
+      <div class="rd-line"></div>
+    </div>
+
+    <!-- Message -->
+    <div class="msg-area">
+      <div class="gmsg" id="game-msg">place your offering</div>
+    </div>
+
+    <div class="ritual-divider">
+      <div class="rd-line"></div>
+      <div class="rd-glyph">&#10022;</div>
+      <div class="rd-line"></div>
+    </div>
+
+    <!-- Player -->
+    <div class="zone">
+      <div class="zlbl">The Supplicant</div>
+      <div class="p-hands" id="player-hands-row"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="ctrl">
+
+      <!-- Insurance -->
+      <div class="ins" id="ins-box">
+        <p>the dealer reveals an ace. do you ward yourself?</p>
+        <p id="ins-cost" style="font-size:0.6rem;color:var(--bone-dim);letter-spacing:0.2em;margin-top:2px;"></p>
+        <div class="ins-row">
+          <button class="gb" id="btn-ins-yes">ward</button>
+          <button class="gb danger" id="btn-ins-no">refuse</button>
+        </div>
+      </div>
+
+      <!-- Tally offering controls -->
+      <div class="offering-sect" id="bet-sect">
+        <div class="tally-row">
+          <!-- +1: single scratch -->
+          <button class="tally-btn" data-v="1">
+            <svg class="tally-svg" viewBox="0 0 8 18" width="8" height="18" stroke="currentColor" stroke-linecap="round" fill="none">
+              <line x1="4" y1="1" x2="4" y2="17" stroke-width="1.6"/>
+            </svg>
+            <span class="tally-num">1</span>
+          </button>
+          <!-- +5: four marks with diagonal cross (gate) -->
+          <button class="tally-btn" data-v="5">
+            <svg class="tally-svg" viewBox="0 0 30 18" width="30" height="18" stroke="currentColor" stroke-linecap="round" fill="none">
+              <line x1="4"  y1="1" x2="4"  y2="17" stroke-width="1.4"/>
+              <line x1="11" y1="1" x2="11" y2="17" stroke-width="1.4"/>
+              <line x1="18" y1="1" x2="18" y2="17" stroke-width="1.4"/>
+              <line x1="25" y1="1" x2="25" y2="17" stroke-width="1.4"/>
+              <line x1="1"  y1="16" x2="28" y2="2"  stroke-width="1.4"/>
+            </svg>
+            <span class="tally-num">5</span>
+          </button>
+          <!-- +10: two gates -->
+          <button class="tally-btn" data-v="10">
+            <svg class="tally-svg" viewBox="0 0 64 18" width="54" height="15" stroke="currentColor" stroke-linecap="round" fill="none">
+              <line x1="4"  y1="1" x2="4"  y2="17" stroke-width="1.4"/>
+              <line x1="11" y1="1" x2="11" y2="17" stroke-width="1.4"/>
+              <line x1="18" y1="1" x2="18" y2="17" stroke-width="1.4"/>
+              <line x1="25" y1="1" x2="25" y2="17" stroke-width="1.4"/>
+              <line x1="1"  y1="16" x2="28" y2="2"  stroke-width="1.4"/>
+              <line x1="36" y1="1" x2="36" y2="17" stroke-width="1.4"/>
+              <line x1="43" y1="1" x2="43" y2="17" stroke-width="1.4"/>
+              <line x1="50" y1="1" x2="50" y2="17" stroke-width="1.4"/>
+              <line x1="57" y1="1" x2="57" y2="17" stroke-width="1.4"/>
+              <line x1="33" y1="16" x2="60" y2="2"  stroke-width="1.4"/>
+            </svg>
+            <span class="tally-num">10</span>
+          </button>
+          <!-- +25: pentagram -->
+          <button class="tally-btn" data-v="25">
+            <svg class="tally-svg" viewBox="0 0 30 30" width="22" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
+              <polygon points="15,2 20.9,23.1 5.5,11.9 24.5,11.9 9.1,23.1" stroke-width="1.3"/>
+            </svg>
+            <span class="tally-num">25</span>
+          </button>
+          <!-- +100: hexagram (two interlocked triangles) -->
+          <button class="tally-btn" data-v="100">
+            <svg class="tally-svg" viewBox="0 0 30 30" width="22" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
+              <polygon points="15,2 27,22 3,22"   stroke-width="1.2"/>
+              <polygon points="15,28 3,8 27,8"    stroke-width="1.2"/>
+            </svg>
+            <span class="tally-num">100</span>
+          </button>
+        </div>
+        <div class="offering-row">
+          <div class="offering-info">
+            <span class="offering-lbl">Offering</span>
+            <span class="offering-val" id="bet-display">0</span>
+          </div>
+          <div class="offering-acts">
+            <button class="gb" id="btn-clear">clr</button>
+            <button class="gb" id="btn-rebet" disabled>again</button>
+            <button class="gb-inv" id="btn-deal" disabled>invoke</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="act-row" id="action-row">
+        <button class="gb" id="btn-hit">draw [H]</button>
+        <button class="gb" id="btn-stand">hold [S]</button>
+        <button class="gb" id="btn-double">bind [D]</button>
+        <button class="gb" id="btn-split">divide</button>
+        <button class="gb danger" id="btn-surrender">flee</button>
+      </div>
+
+      <!-- Result -->
+      <div class="res-row" id="result-row">
+        <button class="gb-inv" id="btn-new-deal">again</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCRIPT
+================================================================ -->
+<script>
+/* ============================================================
+   AUDIO ENGINE
+============================================================ */
+const SFX = (()=>{
+  let ctx=null,master=null,droneUp=false;
+  const ac=()=>{if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();return ctx;};
+  const ms=()=>{if(!master){master=ac().createGain();master.gain.value=0.45;master.connect(ac().destination);}return master;};
+  const resume=()=>{const c=ac();if(c.state==='suspended')c.resume();};
+
+  function deal(){
+    const c=ac(),buf=c.createBuffer(1,~~(c.sampleRate*0.06),c.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*0.006));
+    const src=c.createBufferSource();src.buffer=buf;
+    const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=2800;
+    const g=c.createGain();g.gain.value=0.35;
+    src.connect(f);f.connect(g);g.connect(ms());src.start();
+  }
+
+  function token(){
+    const c=ac(),now=c.currentTime;
+    // Dull thud: low pitched knock
+    const o=c.createOscillator(),g=c.createGain(),fi=c.createBiquadFilter();
+    o.type='sine';o.frequency.setValueAtTime(180,now);o.frequency.exponentialRampToValueAtTime(80,now+0.08);
+    fi.type='lowpass';fi.frequency.value=600;
+    g.gain.setValueAtTime(0.18,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.1);
+    o.connect(fi);fi.connect(g);g.connect(ms());o.start(now);o.stop(now+0.12);
+  }
+
+  function click(){
+    const c=ac(),now=c.currentTime,o=c.createOscillator(),g=c.createGain();
+    o.type='square';o.frequency.value=160;
+    g.gain.setValueAtTime(0.05,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.04);
+    o.connect(g);g.connect(ms());o.start(now);o.stop(now+0.05);
+  }
+
+  function win(){
+    const c=ac(),now=c.currentTime;
+    // Slow, warm two-note resolution
+    [[330,0],[495,0.18]].forEach(([f,d])=>{
+      const o=c.createOscillator(),g=c.createGain(),fi=c.createBiquadFilter();
+      o.type='triangle';o.frequency.value=f;fi.type='lowpass';fi.frequency.value=1200;
+      g.gain.setValueAtTime(0,now+d);g.gain.linearRampToValueAtTime(0.1,now+d+0.04);g.gain.exponentialRampToValueAtTime(0.001,now+d+0.55);
+      o.connect(fi);fi.connect(g);g.connect(ms());o.start(now+d);o.stop(now+d+0.6);
+    });
+  }
+
+  function blackjack(){
+    const c=ac(),now=c.currentTime;
+    [220,277,330,415,523].forEach((f,i)=>{
+      const t=now+i*0.1,o=c.createOscillator(),g=c.createGain(),fi=c.createBiquadFilter();
+      fi.type='lowpass';fi.frequency.value=1800;
+      o.type='triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.1,t+0.03);g.gain.exponentialRampToValueAtTime(0.001,t+0.6);
+      o.connect(fi);fi.connect(g);g.connect(ms());o.start(t);o.stop(t+0.65);
+    });
+  }
+
+  function lose(){
+    const c=ac(),now=c.currentTime;
+    [160,110,70].forEach((f,i)=>{
+      const t=now+i*0.14,o=c.createOscillator(),g=c.createGain(),fi=c.createBiquadFilter();
+      fi.type='lowpass';fi.frequency.value=300;o.type='sawtooth';
+      o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*0.45,t+0.5);
+      g.gain.setValueAtTime(0.12,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.55);
+      o.connect(fi);fi.connect(g);g.connect(ms());o.start(t);o.stop(t+0.6);
+    });
+  }
+
+  function bust(){
+    const c=ac(),now=c.currentTime,o=c.createOscillator(),g=c.createGain(),fi=c.createBiquadFilter();
+    fi.type='lowpass';fi.frequency.value=280;o.type='sawtooth';
+    o.frequency.setValueAtTime(180,now);o.frequency.exponentialRampToValueAtTime(30,now+0.35);
+    g.gain.setValueAtTime(0.3,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.42);
+    o.connect(fi);fi.connect(g);g.connect(ms());o.start(now);o.stop(now+0.45);
+  }
+
+  function startAmbient(){
+    if(droneUp)return;droneUp=true;
+    const c=ac();
+    // Deep, slow organ-like drone
+    [36.7,55,73.4,110].forEach((f,i)=>{
+      const o=c.createOscillator(),g=c.createGain(),lo=c.createOscillator(),lg=c.createGain();
+      o.type=i===0?'sawtooth':'sine';o.frequency.value=f;
+      g.gain.value=0.032-i*0.005;
+      lo.type='sine';lo.frequency.value=0.03+i*0.008;lg.gain.value=0.01;
+      lo.connect(lg);lg.connect(g.gain);o.connect(g);g.connect(ms());lo.start();o.start();
+    });
+    // Subtle crackle
+    const bl=c.sampleRate*3,buf=c.createBuffer(1,bl,c.sampleRate),bd=buf.getChannelData(0);
+    for(let i=0;i<bl;i++)bd[i]=(Math.random()*2-1)*0.005;
+    const src=c.createBufferSource();src.buffer=buf;src.loop=true;
+    const fi=c.createBiquadFilter();fi.type='bandpass';fi.frequency.value=800;fi.Q.value=0.3;
+    const hg=c.createGain();hg.gain.value=0.4;
+    src.connect(fi);fi.connect(hg);hg.connect(ms());src.start();
+  }
+
+  return{resume,deal,token,click,win,blackjack,lose,bust,startAmbient};
+})();
+
+/* ============================================================
+   GLITCH TEXT ENGINE
+============================================================ */
+const GLITCH_CHARS = '|/\\!?_#@%^*+=-><{}[]░▒▓0123456789';
+
+function glitchReveal(el, finalText, cls='') {
+  el.className = 'gmsg glitching';
+  let frame = 0;
+  const totalFrames = 10;
+  const interval = setInterval(() => {
+    const progress = frame / totalFrames;
+    const revealedCount = Math.floor(progress * finalText.length);
+    let display = '';
+    for (let i = 0; i < finalText.length; i++) {
+      if (finalText[i] === ' ') { display += ' '; continue; }
+      if (i < revealedCount) {
+        display += finalText[i];
+      } else {
+        display += GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+      }
+    }
+    el.textContent = display;
+    frame++;
+    if (frame > totalFrames) {
+      clearInterval(interval);
+      el.textContent = finalText;
+      el.className = 'gmsg' + (cls ? ' ' + cls : '');
+    }
+  }, 36);
+}
+
+function setMsg(text, cls='') {
+  const el = document.getElementById('game-msg');
+  glitchReveal(el, text, cls);
+}
+
+/* ============================================================
+   CARD ENGINE
+============================================================ */
+const SUITS = ['&spades;','&hearts;','&diams;','&clubs;'];
+const REDS  = new Set(['&hearts;','&diams;']);
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+function freshDecks(n=6){
+  const d=[];
+  for(let k=0;k<n;k++) for(const s of SUITS) for(const r of RANKS) d.push({s,r});
+  for(let i=d.length-1;i>0;i--){const j=~~(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}
+  return d;
+}
+const cv=c=>['J','Q','K','10'].includes(c.r)?10:c.r==='A'?11:+c.r;
+function hv(hand){
+  let t=0,a=0;
+  for(const c of hand){if(c.hidden)continue;t+=cv(c);if(c.r==='A')a++;}
+  while(t>21&&a-->0)t-=10; return t;
+}
+const isBJ=h=>h.length===2&&hv(h)===21;
+
+/* ============================================================
+   STATE
+============================================================ */
+let G={
+  deck:[],dealerHand:[],pHands:[[]],pBets:[0],
+  idx:0,chips:1000,bet:0,lastBet:0,insured:0,
+  phase:'bet',splitAces:false
+};
+function draw(hidden=false){
+  if(G.deck.length<20)G.deck=freshDecks();
+  const c=G.deck.pop();c.hidden=hidden;return c;
+}
+
+/* ============================================================
+   RENDER
+============================================================ */
+function mkCard(c){
+  const el=document.createElement('div');
+  if(c.hidden){el.className='card cb-card';return el;}
+  const r=REDS.has(c.s);
+  el.className='card cf '+(r?'r':'b');
+  el.innerHTML=
+    `<div class="c-tl"><div class="crk">${c.r}</div><div class="css">${c.s}</div></div>`+
+    `<div class="cct">${c.s}</div>`+
+    `<div class="c-tl c-br"><div class="crk">${c.r}</div><div class="css">${c.s}</div></div>`;
+  return el;
+}
+
+function render(){
+  // Dealer
+  const dh=document.getElementById('dealer-hand'); dh.innerHTML='';
+  G.dealerHand.forEach(c=>dh.appendChild(mkCard(c)));
+  const ds=document.getElementById('dealer-score');
+  const vis=G.dealerHand.filter(c=>!c.hidden);
+  if(vis.length){
+    const full=!G.dealerHand.some(c=>c.hidden),v=hv(vis);
+    ds.textContent=full?v:v+' + ?';
+    ds.className='zscore'+(full&&v>21?' bust':(full&&isBJ(G.dealerHand)?' bj':''));
+  }else ds.textContent='';
+
+  // Player
+  const row=document.getElementById('player-hands-row'); row.innerHTML='';
+  G.pHands.forEach((hand,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='hwrap'+(G.phase==='play'&&i===G.idx?' cur':'');
+    const hr=document.createElement('div');hr.className='hand-row';
+    hand.forEach(c=>hr.appendChild(mkCard(c)));
+    const v=hv(hand);
+    const sc=document.createElement('div');
+    sc.className='zscore'+(v>21?' bust':(isBJ(hand)?' bj':''));
+    sc.textContent=hand.length?(v>21?'BUST':isBJ(hand)?'21':v):'';
+    const bl=document.createElement('div');bl.className='hbet';
+    bl.textContent='offering: '+G.pBets[i];
+    wrap.appendChild(hr);wrap.appendChild(sc);wrap.appendChild(bl);
+    row.appendChild(wrap);
+  });
+
+  document.getElementById('hud-chips').textContent=G.chips;
+  document.getElementById('bet-display').textContent=G.bet||'0';
+}
+
+function showBet(){
+  document.getElementById('bet-sect').style.cssText='display:flex;flex-direction:column;gap:8px;';
+  document.getElementById('action-row').classList.remove('open');
+  document.getElementById('result-row').classList.remove('open');
+  document.getElementById('ins-box').classList.remove('open');
+  document.getElementById('btn-deal').disabled=G.bet<=0;
+  document.getElementById('btn-rebet').disabled=G.lastBet<=0||G.chips<G.lastBet;
+}
+function showPlay(){
+  document.getElementById('bet-sect').style.display='none';
+  document.getElementById('action-row').classList.add('open');
+  document.getElementById('result-row').classList.remove('open');
+  refreshActs();
+}
+function showResult(){
+  document.getElementById('bet-sect').style.display='none';
+  document.getElementById('action-row').classList.remove('open');
+  document.getElementById('result-row').classList.add('open');
+}
+function refreshActs(){
+  const hand=G.pHands[G.idx],bet=G.pBets[G.idx];
+  document.getElementById('btn-double').disabled=!(hand.length===2&&G.chips>=bet);
+  document.getElementById('btn-split').disabled=!(hand.length===2&&cv(hand[0])===cv(hand[1])&&G.chips>=bet&&G.pHands.length<4);
+  document.getElementById('btn-surrender').disabled=!(hand.length===2&&G.pHands.length===1);
+  document.getElementById('btn-hit').disabled=G.splitAces;
+}
+
+/* ============================================================
+   GAME FLOW
+============================================================ */
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function resetForBet(){
+  G.phase='bet';G.dealerHand=[];G.pHands=[[]];G.pBets=[0];
+  G.idx=0;G.bet=0;G.insured=0;G.splitAces=false;
+  render();setMsg('place your offering');showBet();
+}
+
+async function startDeal(){
+  if(G.bet<=0)return;
+  SFX.resume();SFX.startAmbient();
+  G.phase='deal';G.pBets=[G.bet];G.chips-=G.bet;G.lastBet=G.bet;
+  document.getElementById('bet-sect').style.display='none';
+  const seq=[
+    ()=>{G.pHands[0].push(draw());SFX.deal();},
+    ()=>{G.dealerHand.push(draw());SFX.deal();},
+    ()=>{G.pHands[0].push(draw());SFX.deal();},
+    ()=>{G.dealerHand.push(draw(true));SFX.deal();}
+  ];
+  for(const fn of seq){fn();render();await wait(320);}
+  if(G.dealerHand[0].r==='A')await offerIns();
+  else await checkBJ();
+}
+
+async function offerIns(){
+  G.phase='ins';
+  const h=Math.floor(G.pBets[0]/2);
+  document.getElementById('ins-cost').textContent='cost: '+h;
+  document.getElementById('ins-box').classList.add('open');
+  setMsg('an ace. the dealer hides something.');
+}
+async function resolveIns(take){
+  document.getElementById('ins-box').classList.remove('open');
+  if(take){const h=Math.floor(G.pBets[0]/2);G.insured=h;G.chips-=h;render();}
+  await checkBJ();
+}
+
+async function checkBJ(){
+  G.phase='play';
+  const pBJ=isBJ(G.pHands[0]);
+  const hole=G.dealerHand[1];
+  const dBJ=!!(hole&&hv([G.dealerHand[0],{...hole,hidden:false}])===21);
+  if(pBJ||dBJ){
+    G.dealerHand[1].hidden=false;render();
+    if(pBJ&&dBJ){
+      if(G.insured>0)G.chips+=G.insured*3;
+      G.chips+=G.pBets[0];
+      setMsg('both stand at 21. a stalemate.','push');SFX.click();
+    }else if(pBJ){
+      G.chips+=G.pBets[0]+Math.floor(G.pBets[0]*1.5);
+      setMsg('blackjack. 3 to 2.','win');SFX.blackjack();
+    }else{
+      if(G.insured>0){G.chips+=G.insured*3;setMsg('dealer holds 21. the ward holds.','push');SFX.click();}
+      else{setMsg('dealer holds 21. your offering is taken.','lose');SFX.lose();}
+    }
+    G.phase='result';render();await wait(500);showResult();return;
+  }
+  showPlay();setMsg('what do you do?');
+}
+
+async function doHit(){
+  const hand=G.pHands[G.idx];
+  hand.push(draw());SFX.deal();render();await wait(180);
+  const v=hv(hand);
+  if(v>21){
+    SFX.bust();shake();
+    if(G.idx<G.pHands.length-1){
+      setMsg('hand '+(G.idx+1)+' is broken.','lose');
+      await wait(700);G.idx++;render();refreshActs();
+      setMsg('hand '+(G.idx+1));
+    }else await allBusted();
+  }else if(v===21)await doStand();
+  else refreshActs();
+}
+async function doStand(){
+  if(G.idx<G.pHands.length-1){G.idx++;render();refreshActs();setMsg('hand '+(G.idx+1));}
+  else await dealerPlay();
+}
+async function allBusted(){
+  G.dealerHand[1].hidden=false;render();
+  setMsg('broken. the offering is taken.','lose');SFX.lose();
+  G.phase='result';render();await wait(500);showResult();
+}
+async function doDouble(){
+  const hand=G.pHands[G.idx],bet=G.pBets[G.idx],extra=Math.min(bet,G.chips);
+  G.chips-=extra;G.pBets[G.idx]+=extra;
+  hand.push(draw());SFX.deal();render();await wait(280);
+  if(hv(hand)>21){SFX.bust();shake();}
+  await doStand();
+}
+async function doSplit(){
+  const hand=G.pHands[G.idx],bet=G.pBets[G.idx];
+  G.chips-=bet;
+  if(hand[0].r==='A')G.splitAces=true;
+  const c2=hand.pop();
+  G.pHands.splice(G.idx+1,0,[c2]);G.pBets.splice(G.idx+1,0,bet);
+  hand.push(draw());SFX.deal();render();await wait(250);
+  G.pHands[G.idx+1].push(draw());SFX.deal();render();refreshActs();
+  setMsg('divided. '+(G.idx+1)+' of '+G.pHands.length+'.');
+}
+async function doSurrender(){
+  const ref=Math.floor(G.pBets[G.idx]/2);G.chips+=ref;
+  G.dealerHand[1].hidden=false;G.phase='result';render();
+  setMsg('you flee. half remains.','push');SFX.click();
+  await wait(500);showResult();
+}
+async function dealerPlay(){
+  G.phase='dealer';
+  document.getElementById('action-row').classList.remove('open');
+  G.dealerHand[1].hidden=false;render();SFX.deal();await wait(500);
+  while(hv(G.dealerHand)<17){G.dealerHand.push(draw());render();SFX.deal();await wait(580);}
+  await settle();
+}
+async function settle(){
+  G.phase='result';
+  const dv=hv(G.dealerHand),dBust=dv>21;
+  let won=false,allPush=true;
+  for(let i=0;i<G.pHands.length;i++){
+    const pv=hv(G.pHands[i]),pb=G.pBets[i];
+    if(pv>21){allPush=false;}
+    else if(dBust||pv>dv){G.chips+=pb*2;won=true;allPush=false;}
+    else if(pv===dv){G.chips+=pb;}
+    else allPush=false;
+  }
+  render();
+  let msg,cls;
+  if(allPush&&G.pHands.every(h=>hv(h)<=21)){
+    msg='a draw. the offering returns.';cls='push';SFX.click();
+  }else if(won){
+    msg=dBust?'the dealer breaks. you endure.':'you prevail.';cls='win';SFX.win();
+  }else{
+    msg=G.pHands.every(h=>hv(h)>21)?'broken.':'the dealer takes it.';cls='lose';SFX.lose();
+  }
+  setMsg(msg,cls);
+  if(G.chips<=0){
+    await wait(2000);G.chips=1000;render();
+    setMsg('the table extends credit. do not waste it.','push');
+  }
+  await wait(400);showResult();
+}
+
+function shake(){
+  const el=document.getElementById('player-hands-row');
+  el.classList.add('shk');setTimeout(()=>el.classList.remove('shk'),440);
+}
+
+/* ============================================================
+   NAV + INIT
+============================================================ */
+const showScreen=id=>{
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+};
+const openRules=()=>document.getElementById('rules-overlay').classList.add('open');
+const closeRules=()=>document.getElementById('rules-overlay').classList.remove('open');
+
+document.addEventListener('DOMContentLoaded',()=>{
+  G.deck=freshDecks();
+
+  document.getElementById('btn-enter').addEventListener('click',()=>{
+    SFX.resume();SFX.startAmbient();SFX.click();
+    showScreen('screen-game');resetForBet();
+  });
+  document.getElementById('btn-rules-start').addEventListener('click',()=>{SFX.click();openRules();});
+  document.getElementById('btn-close-rules').addEventListener('click',()=>{SFX.click();closeRules();});
+  document.getElementById('rules-overlay').addEventListener('click',e=>{
+    if(e.target===document.getElementById('rules-overlay'))closeRules();
+  });
+  document.getElementById('btn-rules-game').addEventListener('click',()=>{SFX.resume();SFX.click();openRules();});
+
+  document.querySelectorAll('.tally-btn').forEach(tb=>{
+    tb.addEventListener('click',()=>{
+      if(G.phase!=='bet')return;
+      SFX.resume();SFX.token();
+      const v=parseInt(tb.dataset.v);
+      if(G.chips>=G.bet+v){
+        G.bet+=v;
+        document.getElementById('bet-display').textContent=G.bet;
+        document.getElementById('btn-deal').disabled=false;
+      }
+    });
+  });
+
+  document.getElementById('btn-clear').addEventListener('click',()=>{
+    if(G.phase!=='bet')return;SFX.click();G.bet=0;
+    document.getElementById('bet-display').textContent='0';
+    document.getElementById('btn-deal').disabled=true;
+  });
+  document.getElementById('btn-rebet').addEventListener('click',()=>{
+    if(G.phase!=='bet'||G.lastBet<=0||G.chips<G.lastBet)return;
+    SFX.token();G.bet=G.lastBet;
+    document.getElementById('bet-display').textContent=G.bet;
+    document.getElementById('btn-deal').disabled=false;
+  });
+  document.getElementById('btn-deal').addEventListener('click',()=>{
+    if(G.bet<=0||G.chips<G.bet)return;SFX.click();startDeal();
+  });
+
+  document.getElementById('btn-hit').addEventListener('click',()=>{if(G.phase!=='play')return;SFX.click();doHit();});
+  document.getElementById('btn-stand').addEventListener('click',()=>{if(G.phase!=='play')return;SFX.click();doStand();});
+  document.getElementById('btn-double').addEventListener('click',()=>{if(G.phase!=='play')return;SFX.click();doDouble();});
+  document.getElementById('btn-split').addEventListener('click',()=>{if(G.phase!=='play')return;SFX.click();doSplit();});
+  document.getElementById('btn-surrender').addEventListener('click',()=>{if(G.phase!=='play')return;SFX.click();doSurrender();});
+  document.getElementById('btn-ins-yes').addEventListener('click',()=>{
+    const h=Math.floor(G.pBets[0]/2);if(G.chips<h)return;SFX.token();resolveIns(true);
+  });
+  document.getElementById('btn-ins-no').addEventListener('click',()=>{SFX.click();resolveIns(false);});
+  document.getElementById('btn-new-deal').addEventListener('click',()=>{SFX.click();resetForBet();});
+
+  document.addEventListener('keydown',e=>{
+    if(G.phase==='play'){
+      if((e.key==='h'||e.key==='H')&&!document.getElementById('btn-hit').disabled){SFX.click();doHit();}
+      if(e.key==='s'||e.key==='S'){SFX.click();doStand();}
+      if((e.key==='d'||e.key==='D')&&!document.getElementById('btn-double').disabled){SFX.click();doDouble();}
+    }
+    if(e.key==='Escape')closeRules();
+  });
+});
+</script>
+</body>
+</html>
